@@ -86,6 +86,7 @@ import com.splicemachine.hbase.jmx.JMXUtils;
 import com.splicemachine.pipeline.ErrorState;
 import com.splicemachine.pipeline.Exceptions;
 import com.splicemachine.pipeline.SimpleActivation;
+import com.splicemachine.primitives.Bytes;
 import com.splicemachine.protobuf.ProtoUtil;
 import com.splicemachine.si.api.data.TxnOperationFactory;
 import com.splicemachine.si.constants.SIConstants;
@@ -1800,11 +1801,17 @@ public class SpliceAdmin extends BaseAdminProcedures{
     }
 
 
-    public static void SYSCS_GET_SPLICE_TOKEN(final ResultSet[] resultSet) throws SQLException {
+    public static void SYSCS_GET_SPLICE_TOKEN(final String userName, final ResultSet[] resultSet) throws SQLException {
         try {
             EmbedConnection conn = (EmbedConnection)getDefaultConn();
             LanguageConnectionContext lcc = conn.getLanguageConnection();
             Activation lastActivation = conn.getLanguageConnection().getLastActivation();
+
+            // Grant HBase access to splice schema for user
+            try(PartitionAdmin admin=SIDriver.driver().getTableFactory().getAdmin()) {
+                byte[] encoding = Bytes.toBytes(userName);
+                admin.hbaseOperation(null, "grant", encoding);
+            }
 
             DataDictionary dd = lcc.getDataDictionary();
             dd.startWriting(lcc);
@@ -1818,7 +1825,6 @@ public class SpliceAdmin extends BaseAdminProcedures{
 
             List<ExecRow> rows = new ArrayList<>();
 
-
             SConfiguration config=EngineDriver.driver().getConfiguration();
             String hostname = NetworkUtils.getHostname(config);
             int length = config.getAuthenticationTokenLength();
@@ -1826,7 +1832,7 @@ public class SpliceAdmin extends BaseAdminProcedures{
             int renewInterval = config.getAuthenticationTokenRenewInterval();
 
             byte[] token = new byte[length];
-            SecureRandom.getInstanceStrong().nextBytes(token);
+            new SecureRandom().nextBytes(token);
 
             String username = lcc.getCurrentUserId(lastActivation);
             DateTime creationTime = new DateTime(System.currentTimeMillis());
