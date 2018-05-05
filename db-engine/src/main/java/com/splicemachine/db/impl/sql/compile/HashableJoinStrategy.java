@@ -156,19 +156,20 @@ public abstract class HashableJoinStrategy extends BaseJoinStrategy {
             }
         }
         // Allow inequality join if we're skipping the key check and this is
-        // truly a join (number of relations > 1, isOuterJoin, isAntiJoin).
+        // truly a join (number of relations > 1 or we have a HalfOuterJoinNode).
         // Also don't allow a VALUES list, eg. select * from (values ('a'), ('b') ... ('z')) mytab,
         // constructed with UnionNodes and RowResultSetNodes, to be misconstrued as a join.
         // The same conditions as in NestedLoopJoinStrategy.feasible are added for safety.
         // Could these be removed in the future?
-        if (hashKeyColumns == null                                   &&
-            skipKeyCheck                                             &&
-            (predList != null || wasHinted ||
-            ((OptimizerImpl)optimizer).optimizableList.size() >= 2)  &&
+        if (hashKeyColumns == null                                        &&
+            skipKeyCheck                                                  &&
+            innerTable instanceof FromTable                               &&
+            (wasHinted || innerTable instanceof HalfOuterJoinNode ||
+            ((FromTable)innerTable).getReferencedTableMap().size() >= 2)  &&
             (innerTable.isMaterializable() ||
-             innerTable.supportsMultipleInstantiations())            &&
-            optimizer instanceof OptimizerImpl                       &&
-            !(innerTable instanceof RowResultSetNode)                &&
+             innerTable.supportsMultipleInstantiations())                 &&
+            optimizer instanceof OptimizerImpl                            &&
+            !(innerTable instanceof RowResultSetNode)                     &&
             !(innerTable instanceof SetOperatorNode))  {
 
             missingHashKeyOK = true;
