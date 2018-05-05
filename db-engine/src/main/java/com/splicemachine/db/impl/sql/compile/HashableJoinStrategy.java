@@ -167,16 +167,16 @@ public abstract class HashableJoinStrategy extends BaseJoinStrategy {
 
             // With hints the null predList check may be bypassed, but this
             // causes a parsing time explosion if there are too many tables
-            // in the query, so limit this to 100 relations.
-            if (innerTable instanceof FromTable                              &&
+            // in the query, so limit this to 50 relations for now.
+            if (innerTable instanceof FromTable                               &&
                 ((wasHinted && numRels <= 50)  ||
                  (predList != null &&
-                  (innerTable instanceof HalfOuterJoinNode || numRels >= 2)) &&
+                  (innerTable instanceof HalfOuterJoinNode || numRels >= 2))) &&
                 (innerTable.isMaterializable() ||
-                 innerTable.supportsMultipleInstantiations())                &&
-                optimizer instanceof OptimizerImpl                           &&
-                !(innerTable instanceof RowResultSetNode)                    &&
-                !(innerTable instanceof SetOperatorNode))) {
+                 innerTable.supportsMultipleInstantiations())                 &&
+                optimizer instanceof OptimizerImpl                            &&
+                !(innerTable instanceof RowResultSetNode)                     &&
+                !(innerTable instanceof SetOperatorNode)) {
 
                 missingHashKeyOK = true;
                 return true;
