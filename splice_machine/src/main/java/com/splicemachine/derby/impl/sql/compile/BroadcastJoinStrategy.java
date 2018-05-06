@@ -79,12 +79,13 @@ public class BroadcastJoinStrategy extends HashableJoinStrategy {
                             CostEstimate outerCost,
                             boolean wasHinted,
                             boolean skipKeyCheck) throws StandardException {
+        /* Currently BroadcastJoin does not work with a right side IndexRowToBaseRowOperation */
+	    if (JoinStrategyUtil.isNonCoveringIndex(innerTable))
+	        return false;
+
         boolean hashFeasible = super.feasible(innerTable,predList,optimizer,outerCost,wasHinted,true);
 
-        if(!hashFeasible) return false;
-
-        /* Currently BroadcastJoin does not work with a right side IndexRowToBaseRowOperation */
-        return !JoinStrategyUtil.isNonCoveringIndex(innerTable);
+        return hashFeasible;
     }
 
     @Override
