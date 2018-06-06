@@ -153,6 +153,8 @@ if [[ "$SPLICE_LIB_DIR" == *"##"* ]]; then
    # ends in bin, go up and over to lib
    if [[ "$CURDIR" = *"bin" ]]; then
       SPLICE_LIB_DIR="${CURDIR}/../lib"
+   elif [[ "$CURDIR" = "/var/lib/splicemachine" ]]; then #ambari-service
+      SPLICE_LIB_DIR="${CURDIR}"
    else #subdir
       SPLICE_LIB_DIR="${CURDIR}/lib"
    fi
