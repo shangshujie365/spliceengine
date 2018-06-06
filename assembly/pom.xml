@@ -635,6 +635,7 @@
                                                 755
                                             </filemode>
                                             <directoryIncluded>
+                                                false
                                             </directoryIncluded>
                                         </mapping>
                                     </mappings>
