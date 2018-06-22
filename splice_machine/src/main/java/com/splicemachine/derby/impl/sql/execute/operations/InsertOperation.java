@@ -461,4 +461,6 @@ public class InsertOperation extends DMLWriteOperation implements HasIncrement{
     public boolean skipWAL() {
         return skipWAL;
     }
+
+    public String getTableVersion() { return tableVersion; }
 }

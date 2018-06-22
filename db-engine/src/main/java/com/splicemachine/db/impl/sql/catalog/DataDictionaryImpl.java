@@ -1144,11 +1144,16 @@ public abstract class DataDictionaryImpl extends BaseDataDictionary{
                               TupleDescriptor parent,
                               int catalogNumber,
                               boolean duplicatesAllowed,
-                              TransactionController tc) throws StandardException{
+                              TransactionController tc,
+                              boolean buildVersion2Descriptor) throws StandardException{
         TabInfoImpl ti=(catalogNumber<NUM_CORE)?coreInfo[catalogNumber]:getNonCoreTI(catalogNumber);
 
         ExecRow row=ti.getCatalogRowFactory().makeRow(td,parent);
 
+        if (buildVersion2Descriptor)
+        {
+            row.setColumn(SYSTABLESRowFactory.SYSTABLES_VERSION,new SQLVarchar("2.0"));
+        }
         int insertRetCode=ti.insertRow(row,tc);
 
         if(!duplicatesAllowed){
@@ -1377,10 +1382,6 @@ public abstract class DataDictionaryImpl extends BaseDataDictionary{
         }
         retval = getTableDescriptorIndex1Scan(tableName,schemaUUID.toString());
         if (retval!=null) {
-            ConglomerateDescriptor[] conglomerateDescriptors = retval.getConglomerateDescriptors();
-            if (conglomerateDescriptors.length > 0 &&
-                    conglomerateDescriptors[0].getConglomerateNumber() < DataDictionary.FIRST_USER_TABLE_NUMBER)
-                retval.setVersion(SYSTABLESRowFactory.ORIGINAL_TABLE_VERSION);
             dataDictionaryCache.nameTdCacheAdd(tableKey, retval);
         }
         return retval;
@@ -1490,6 +1491,13 @@ public abstract class DataDictionaryImpl extends BaseDataDictionary{
         return finishTableDescriptor(td);
     }
 
+    private void markSystemTablesAsVersion1(TableDescriptor td) {
+        ConglomerateDescriptor[] conglomerateDescriptors = td.getConglomerateDescriptors();
+        if (conglomerateDescriptors.length > 0 &&
+        conglomerateDescriptors[0].getConglomerateNumber() < DataDictionary.FIRST_USER_TABLE_NUMBER)
+            td.setVersion(SYSTABLESRowFactory.ORIGINAL_TABLE_VERSION);
+    }
+
     /**
      * Finish filling in the TableDescriptor.
      * (Build the various lists that hang off the TD.)
@@ -1505,6 +1513,7 @@ public abstract class DataDictionaryImpl extends BaseDataDictionary{
             synchronized(td){
                 getColumnDescriptorsScan(td);
                 getConglomerateDescriptorsScan(td);
+                markSystemTablesAsVersion1(td);
             }
         }
 
@@ -3174,7 +3183,7 @@ public abstract class DataDictionaryImpl extends BaseDataDictionary{
                             uuid,
                             null,0,0,0,parameterId-1);
             // no chance of duplicates here
-            addDescriptor(cd,null,SYSCOLUMNS_CATALOG_NUM,false,tc);
+            addDescriptor(cd,null,SYSCOLUMNS_CATALOG_NUM,false,tc,false);
         }
     }
 
@@ -4822,7 +4831,7 @@ public abstract class DataDictionaryImpl extends BaseDataDictionary{
             }
         }
 
-        addDescriptor(descriptor,descriptor.getSchemaDescriptor(),SYSCONSTRAINTS_CATALOG_NUM,false,tc);
+        addDescriptor(descriptor,descriptor.getSchemaDescriptor(),SYSCONSTRAINTS_CATALOG_NUM,false,tc,false);
 
         switch(type){
             case DataDictionary.PRIMARYKEY_CONSTRAINT:
@@ -4836,7 +4845,7 @@ public abstract class DataDictionaryImpl extends BaseDataDictionary{
             case DataDictionary.CHECK_CONSTRAINT:
                 assert descriptor instanceof CheckConstraintDescriptor:" incorrect type: "+descriptor.getClass();
 
-                addDescriptor(descriptor,null,SYSCHECKS_CATALOG_NUM,true,tc);
+                addDescriptor(descriptor,null,SYSCHECKS_CATALOG_NUM,true,tc,false);
                 break;
         }
     }
@@ -6308,7 +6317,7 @@ public abstract class DataDictionaryImpl extends BaseDataDictionary{
         }
 
         //Add ths System Schema
-        addDescriptor(systemSchemaDesc,null,SYSSCHEMAS_CATALOG_NUM,false,tc);
+        addDescriptor(systemSchemaDesc,null,SYSSCHEMAS_CATALOG_NUM,false,tc,false);
 
 
         // Add the following system Schema's to be compatible with DB2, 
@@ -6352,7 +6361,7 @@ public abstract class DataDictionaryImpl extends BaseDataDictionary{
                 uuidFactory.recreateUUID(SchemaDescriptor.DEFAULT_SCHEMA_UUID),
                 false);
 
-        addDescriptor(appSchemaDesc,null,SYSSCHEMAS_CATALOG_NUM,false,tc);
+        addDescriptor(appSchemaDesc,null,SYSSCHEMAS_CATALOG_NUM,false,tc,false);
     }
 
     /**
@@ -6370,7 +6379,7 @@ public abstract class DataDictionaryImpl extends BaseDataDictionary{
         SchemaDescriptor schema_desc=new SchemaDescriptor(this,schema_name,authorizationDatabaseOwner,oid,true);
 
         // add it to the catalog.
-        addDescriptor(schema_desc,null,SYSSCHEMAS_CATALOG_NUM,false,tc);
+        addDescriptor(schema_desc,null,SYSSCHEMAS_CATALOG_NUM,false,tc,false);
 
         return (schema_desc);
     }
@@ -6544,7 +6553,7 @@ public abstract class DataDictionaryImpl extends BaseDataDictionary{
         }
 
         for(int indexCtr=0;indexCtr<ti.getNumberOfIndexes();indexCtr++){
-            addDescriptor(cgd[indexCtr],sd,SYSCONGLOMERATES_CATALOG_NUM,false,tc);
+            addDescriptor(cgd[indexCtr],sd,SYSCONGLOMERATES_CATALOG_NUM,false,tc,false);
         }
     }
 
@@ -6780,7 +6789,7 @@ public abstract class DataDictionaryImpl extends BaseDataDictionary{
         td=ddg.newTableDescriptor(name,sd,TableDescriptor.SYSTEM_TABLE_TYPE,TableDescriptor.ROW_LOCK_GRANULARITY,-1,
                 null,null,null,null,null,null,false,false);
         td.setUUID(crf.getCanonicalTableUUID());
-        addDescriptor(td,sd,SYSTABLES_CATALOG_NUM,false,tc);
+        addDescriptor(td,sd,SYSTABLES_CATALOG_NUM,false,tc,false);
         toid=td.getUUID();
 	
 		/* Add the conglomerate for the heap */
@@ -6793,7 +6802,7 @@ public abstract class DataDictionaryImpl extends BaseDataDictionary{
                 toid,
                 sd.getUUID());
 
-        addDescriptor(cgd,sd,SYSCONGLOMERATES_CATALOG_NUM,false,tc);
+        addDescriptor(cgd,sd,SYSCONGLOMERATES_CATALOG_NUM,false,tc,false);
 
 		/* Create the columns */
         ColumnDescriptor[] cdlArray=new ColumnDescriptor[columnCount];
@@ -8045,7 +8054,7 @@ public abstract class DataDictionaryImpl extends BaseDataDictionary{
                 false,
                 routine_alias_info,null);
 
-        addDescriptor(ads,null,DataDictionary.SYSALIASES_CATALOG_NUM,false,tc);
+        addDescriptor(ads,null,DataDictionary.SYSALIASES_CATALOG_NUM,false,tc,false);
 
         newlyCreatedRoutines.add(routine_name);
 
@@ -8173,7 +8182,7 @@ public abstract class DataDictionaryImpl extends BaseDataDictionary{
                 new RoutinePermsDescriptor(this,"PUBLIC",authorizationID,routineUUID);
         // add if this permission has not been granted before
         if (getUncachedRoutinePermsDescriptor(routinePermDesc) == null)
-            addDescriptor(routinePermDesc,null,DataDictionary.SYSROUTINEPERMS_CATALOG_NUM,false,tc);
+            addDescriptor(routinePermDesc,null,DataDictionary.SYSROUTINEPERMS_CATALOG_NUM,false,tc,false);
     }
 
     /**
