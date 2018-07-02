@@ -69,7 +69,6 @@ import com.splicemachine.db.impl.sql.compile.CompilerContextImpl;
 import com.splicemachine.db.impl.sql.execute.*;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
-import org.apache.log4j.Priority;
 
 import java.io.UnsupportedEncodingException;
 import java.math.BigInteger;
@@ -140,8 +139,6 @@ public class GenericLanguageConnectionContext extends ContextImpl implements Lan
 
     private StringBuffer sb;
     private CompilerContext.DataSetProcessorType type;
-    private boolean skipStats;
-    private double defaultSelectivityFactor;
 
     private final String ipAddress;
     private Database db;
@@ -207,7 +204,7 @@ public class GenericLanguageConnectionContext extends ContextImpl implements Lan
 
     protected Authorizer authorizer;
     protected String userName=null; //The name the user connects with.
-    protected String groupuser = null; // name of ldap user group
+    protected List<String> groupuserlist = null; // name of ldap user group
 
     //May still be quoted.
     /**
@@ -327,6 +324,7 @@ public class GenericLanguageConnectionContext extends ContextImpl implements Lan
 
     private String lastLogStmt;
     private String lastLogStmtFormat;
+    private SessionPropertiesImpl sessionProperties;
 
     /* constructor */
     public GenericLanguageConnectionContext(
@@ -336,7 +334,7 @@ public class GenericLanguageConnectionContext extends ContextImpl implements Lan
             LanguageConnectionFactory lcf,
             Database db,
             String userName,
-            String groupuser,
+            List<String> groupuserlist,
             int instanceNumber,
             String drdaID,
             String dbname,
@@ -357,13 +355,10 @@ public class GenericLanguageConnectionContext extends ContextImpl implements Lan
         connFactory=lcf;
         this.db=db;
         this.userName=userName;
-        this.groupuser=groupuser;
+        this.groupuserlist=groupuserlist;
         this.instanceNumber=instanceNumber;
         this.drdaID=drdaID;
         this.dbname=dbname;
-        this.skipStats = skipStats;
-        this.defaultSelectivityFactor = defaultSelectivityFactor;
-
         /* Find out whether or not to log info on executing statements to error log
          */
         String logStatementProperty=PropertyUtil.getServiceProperty(getTransactionCompile(),"derby.language.logStatementText");
@@ -373,7 +368,7 @@ public class GenericLanguageConnectionContext extends ContextImpl implements Lan
             stmtLogger.setLevel(Level.OFF);
         }
 
-        String maxStatementLogLenStr = PropertyUtil.getServiceProperty(getTransactionCompile(),
+        String maxStatementLogLenStr = PropertyUtil.getCachedDatabaseProperty(getTransactionCompile(),
                 "derby.language.maxStatementLogLen");
         maxStatementLogLen = maxStatementLogLenStr == null ? -1 : Integer.valueOf
                 (maxStatementLogLenStr);
@@ -385,6 +380,12 @@ public class GenericLanguageConnectionContext extends ContextImpl implements Lan
         stmtValidators=new ArrayList<>();
         triggerTables=new ArrayList<>();
         limiter=ControlExecutionLimiter.NO_OP;
+        sessionProperties = new SessionPropertiesImpl();
+        // transfer setting of skipStats and defaultSelectivityFactor from jdbc connnection string to sessionProperties
+        if (skipStats)
+            this.sessionProperties.setProperty(SessionProperties.PROPERTYNAME.SKIPSTATS, new Boolean(skipStats).toString());
+        if (defaultSelectivityFactor > 0)
+            this.sessionProperties.setProperty(SessionProperties.PROPERTYNAME.DEFAULTSELECTIVITYFACTOR, new Double(defaultSelectivityFactor).toString());
     }
 
     /**
@@ -506,10 +507,12 @@ public class GenericLanguageConnectionContext extends ContextImpl implements Lan
             List<String> publicRoles =
                     dd.getDefaultRoles("PUBLIC", getTransactionCompile());
             defaultRoles.addAll(publicRoles);
-            if (groupuser != null) {
-                List<String> groupRoles =
-                        dd.getDefaultRoles(groupuser, getTransactionCompile());
-                defaultRoles.addAll(groupRoles);
+            if (groupuserlist != null) {
+                for (String groupuser : groupuserlist) {
+                    List<String> groupRoles =
+                            dd.getDefaultRoles(groupuser, getTransactionCompile());
+                    defaultRoles.addAll(groupRoles);
+                }
             }
 
         }
@@ -834,6 +837,8 @@ public class GenericLanguageConnectionContext extends ContextImpl implements Lan
         getCurrentSQLSessionContext().setUser(getSessionUserId());
 
         referencedColumnMap=new WeakHashMap<>();
+
+        sessionProperties.resetAll();
     }
 
     // debug methods
@@ -3229,7 +3234,7 @@ public class GenericLanguageConnectionContext extends ContextImpl implements Lan
     }
 
     @Override
-    public String getCurrentGroupUser(Activation a) {
+    public List<String> getCurrentGroupUser(Activation a) {
         return getCurrentSQLSessionContext(a).getCurrentGroupUser();
     }
 
@@ -3280,6 +3285,26 @@ public class GenericLanguageConnectionContext extends ContextImpl implements Lan
             getCurrentSQLSessionContext(a).removeRole(aRole);
 
         return;
+    }
+
+    @Override
+    public void setSessionProperties(Properties newProperties) {
+        for (Object property: newProperties.keySet()) {
+            SessionProperties.PROPERTYNAME propertyName = (SessionProperties.PROPERTYNAME)property;
+            sessionProperties.setProperty(propertyName, newProperties.get(property));
+        }
+
+        return;
+    }
+
+    @Override
+    public SessionProperties getSessionProperties() {
+        return sessionProperties;
+    }
+
+    @Override
+    public String getCurrentSessionPropertyDelimited() {
+        return sessionProperties.getAllProperties();
     }
 
     @Override
@@ -3446,7 +3471,7 @@ public class GenericLanguageConnectionContext extends ContextImpl implements Lan
             topLevelSSC=new SQLSessionContextImpl(
                     getInitialDefaultSchemaDescriptor(),
                     getSessionUserId(),
-                    defaultRoles, groupuser);
+                    defaultRoles, groupuserlist);
         }
         return topLevelSSC;
     }
@@ -3457,7 +3482,7 @@ public class GenericLanguageConnectionContext extends ContextImpl implements Lan
         return new SQLSessionContextImpl(
                 getInitialDefaultSchemaDescriptor(),
                 getSessionUserId() /* a priori */,
-                defaultRoles, groupuser);
+                defaultRoles, groupuserlist);
     }
 
     /**
@@ -3611,16 +3636,6 @@ public class GenericLanguageConnectionContext extends ContextImpl implements Lan
     }
 
     @Override
-    public boolean getSkipStats() {
-        return skipStats;
-    }
-
-    @Override
-    public double getDefaultSelectivityFactor() {
-        return defaultSelectivityFactor;
-    }
-
-    @Override
     public String getClientIPAddress() {
         return ipAddress;
     }
@@ -3684,9 +3699,9 @@ public class GenericLanguageConnectionContext extends ContextImpl implements Lan
                                   ParameterValueSet pvs) {
         if (stmtLogger.isInfoEnabled()) {
             stmtLogger.info(String.format(
-                    "Start executing query. %s, uuid=%s, engine=%s, %s, paramsCount=%d, params=[ %s ]",
+                    "Start executing query. %s, uuid=%s, engine=%s, %s, paramsCount=%d, params=[ %s ], sessionProperties=[ %s ]",
                     getLogHeader(), uuid, engine, formatLogStmt(ps.getSource()),
-                    pvs.getParameterCount(), pvs.toString()));
+                    pvs.getParameterCount(), pvs.toString(), ps.getSessionPropertyValues()));
         }
     }
 

@@ -21,7 +21,7 @@
     <parent>
         <artifactId>spliceengine-parent</artifactId>
         <groupId>com.splicemachine</groupId>
-        <version>2.8.0.1823-SNAPSHOT</version>
+        <version>2.8.0.1827-SNAPSHOT</version>
     </parent>
     <dependencies>
         <dependency>
@@ -79,27 +79,27 @@
                 <dependency>
                     <groupId>com.splicemachine</groupId>
                     <artifactId>splice_ee-${envClassifier}</artifactId>
-                    <version>2.8.0.1823-SNAPSHOT</version>
+                    <version>2.8.0.1827-SNAPSHOT</version>
                 </dependency>
                 <dependency>
                     <groupId>com.splicemachine</groupId>
                     <artifactId>splice_backup-${envClassifier}</artifactId>
-                    <version>2.8.0.1823-SNAPSHOT</version>
+                    <version>2.8.0.1827-SNAPSHOT</version>
                 </dependency>
                 <dependency>
                     <groupId>com.splicemachine</groupId>
                     <artifactId>splice_auth</artifactId>
-                    <version>2.8.0.1823-SNAPSHOT</version>
+                    <version>2.8.0.1827-SNAPSHOT</version>
                 </dependency>
                 <dependency>
                     <groupId>com.splicemachine</groupId>
                     <artifactId>splice_colperms</artifactId>
-                    <version>2.8.0.1823-SNAPSHOT</version>
+                    <version>2.8.0.1827-SNAPSHOT</version>
                 </dependency>
                 <dependency>
                     <groupId>com.splicemachine</groupId>
                     <artifactId>splice_encryption</artifactId>
-                    <version>2.8.0.1823-SNAPSHOT</version>
+                    <version>2.8.0.1827-SNAPSHOT</version>
                 </dependency>
             </dependencies>
         </profile>
@@ -168,7 +168,8 @@
                                         jmxutils,
                                         jol-core,
                                         slice,
-                                        orc-protobuf
+                                        orc-protobuf,
+                                        spark-avro_2.11
                                     </includeArtifactIds>
                                 </configuration>
                             </execution>
@@ -589,7 +590,8 @@
                                         splice_encryption,
                                         akka-remote_${scala.binary.version},
                                         splicemachine-${envClassifier}-${spark.version}_${scala.binary.version},
-                                        super-csv
+                                        super-csv,
+                                        spark-avro_2.11
                                     </includeArtifactIds>
                                 </configuration>
                             </execution>
@@ -611,7 +613,7 @@
                                     <classifier>splicemachine</classifier>
                                     <version>${envClassifier}.${project.version}.${parcel.patch}</version>
                                     <group>Applications/Internet</group>
-                                    <licence>Copyright © 2018 Splice Machine Inc. Licensed under the Apache License, Version 2.0.</licence>
+                                    <license>Copyright © 2018 Splice Machine Inc. Licensed under the Apache License, Version 2.0.</license>
                                     <requires>
                                         <require>python > 2.6</require>
                                     </requires>
@@ -624,7 +626,24 @@
                                                 </source>
                                             </sources>
                                         </mapping>
+                                        <mapping>
+                                            <directory>/var/lib/splicemachine</directory>
+                                            <sources>
+                                                <source>
+                                                    <location>common/src/main/resources/bin/sqlshell.sh</location>
+                                                </source>
+                                            </sources>
+                                            <filemode>
+                                                755
+                                            </filemode>
+                                            <directoryIncluded>
+                                                false
+                                            </directoryIncluded>
+                                        </mapping>
                                     </mappings>
+                                    <postinstallScriptlet>
+                                      <script>sed -i 's/##SPLICELIBDIR##/\/var\/lib\/splicemachine/g' /var/lib/splicemachine/sqlshell.sh</script>
+                                    </postinstallScriptlet>
                                 </configuration>
                             </execution>
                             <execution>
@@ -638,7 +657,7 @@
                                     <name>splicemachine_ambari_service</name>
                                     <version>${envClassifier}.${project.version}.${parcel.patch}</version>
                                     <group>Applications/Internet</group>
-                                    <licence>Copyright © 2018 Splice Machine Inc. Licensed under the Apache License, Version 2.0.</licence>
+                                    <license>Copyright © 2018 Splice Machine Inc. Licensed under the Apache License, Version 2.0.</license>
                                     <requires>
                                         <require>python > 2.6</require>
                                         <require>ambari-server > 2.2</require>

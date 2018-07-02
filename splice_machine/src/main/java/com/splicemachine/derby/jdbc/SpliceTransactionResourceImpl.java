@@ -32,6 +32,7 @@ import com.splicemachine.utils.SpliceLogUtils;
 import org.apache.log4j.Logger;
 
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Properties;
 
 public final class SpliceTransactionResourceImpl implements AutoCloseable{
@@ -74,16 +75,27 @@ public final class SpliceTransactionResourceImpl implements AutoCloseable{
     }
 
     public boolean marshallTransaction(TxnView txn) throws StandardException, SQLException{
-        if (LOG.isDebugEnabled()) {
-            SpliceLogUtils.debug(LOG, "marshallTransaction with transactionID %s", txn);
+        boolean updated = false;
+        try {
+            if (LOG.isDebugEnabled()) {
+                SpliceLogUtils.debug(LOG, "marshallTransaction with transactionID %s", txn);
+            }
+
+            cm = csf.newContextManager();
+            csf.setCurrentContextManager(cm);
+            updated = true;
+
+            ArrayList<String> grouplist = new ArrayList<>();
+            grouplist.add(username);
+            lcc=database.generateLanguageConnectionContext(txn, cm, username,grouplist,drdaID, dbname, CompilerContext.DataSetProcessorType.DEFAULT_CONTROL,false, -1, ipAddress);
+
+            return true;
+        } catch (Throwable t) {
+            LOG.error("Exception during marshallTransaction", t);
+            if (updated)
+                close();
+            throw t;
         }
-
-        cm=csf.newContextManager();
-        csf.setCurrentContextManager(cm);
-
-        lcc=database.generateLanguageConnectionContext(txn, cm, username,username,drdaID, dbname, CompilerContext.DataSetProcessorType.DEFAULT_CONTROL,false, -1, ipAddress);
-
-        return true;
     }
 
 

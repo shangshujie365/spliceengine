@@ -69,12 +69,12 @@ public class RoutinePrivilegeInfo extends PrivilegeInfo
 		DataDictionary dd = lcc.getDataDictionary();
         String currentUser = lcc.getCurrentUserId(activation);
 		TransactionController tc = lcc.getTransactionExecute();
-		String groupuser = lcc.getCurrentGroupUser(activation);
+		List<String> groupuserlist = lcc.getCurrentGroupUser(activation);
 
 		List<PermissionsDescriptor> result = Lists.newArrayList();
         // Check that the current user has permission to grant the privileges.
 		checkOwnership( currentUser,
-						groupuser,
+						groupuserlist,
 						dd.getSchemaDescriptor( aliasDescriptor.getSchemaUUID(), tc),
 						dd);
 		
@@ -89,7 +89,8 @@ public class RoutinePrivilegeInfo extends PrivilegeInfo
             // warning.
             boolean privileges_revoked = false;
             String grantee = (String) grantee1;
-            if (dd.addRemovePermissionsDescriptor(grant, routinePermsDesc, grantee, tc) == DataDictionary.PermissionOperation.REMOVE) {
+			DataDictionary.PermissionOperation action = dd.addRemovePermissionsDescriptor(grant, routinePermsDesc, grantee, tc);
+			if (action == DataDictionary.PermissionOperation.REMOVE) {
                 privileges_revoked = true;
                 //Derby currently supports only restrict form of revoke execute
                 //privilege and that is why, we are sending invalidation action
@@ -108,6 +109,8 @@ public class RoutinePrivilegeInfo extends PrivilegeInfo
                         (aliasDescriptor,
                                 DependencyManager.INTERNAL_RECOMPILE_REQUEST, lcc);
 
+			}
+			if (action != DataDictionary.PermissionOperation.NOCHANGE) {
                 RoutinePermsDescriptor routinePermsDescriptor =
                         new RoutinePermsDescriptor(dd, routinePermsDesc.getGrantee(), routinePermsDesc.getGrantor(),
                                 routinePermsDesc.getRoutineUUID());

@@ -32,6 +32,7 @@ import com.splicemachine.derby.iapi.sql.execute.SpliceOperation;
 import com.splicemachine.derby.iapi.sql.execute.SpliceOperationContext;
 import com.splicemachine.derby.impl.SpliceMethod;
 import com.splicemachine.derby.impl.sql.execute.operations.iapi.Restriction;
+import com.splicemachine.derby.impl.sql.execute.operations.iapi.ScanInformation;
 import com.splicemachine.derby.impl.store.access.SpliceTransactionManager;
 import com.splicemachine.derby.impl.store.access.base.SpliceConglomerate;
 import com.splicemachine.derby.stream.function.IndexToBaseRowFilterPredicateFunction;
@@ -290,6 +291,9 @@ public class IndexRowToBaseRowOperation extends SpliceBaseOperation{
 
     @Override
     public DataSet<ExecRow> getDataSet(DataSetProcessor dsp) throws StandardException {
+        if (!isOpen)
+            throw new IllegalStateException("Operation is not open");
+
         if(readerBuilder==null){
             SConfiguration configuration=EngineDriver.driver().getConfiguration();
             int indexBatchSize = configuration.getIndexBatchSize();
@@ -460,5 +464,15 @@ public class IndexRowToBaseRowOperation extends SpliceBaseOperation{
     @Override
     public ExecIndexRow getStartPosition() throws StandardException {
         return source.getStartPosition();
+    }
+
+    @Override
+    public FormatableBitSet getAccessedColumns() throws StandardException {
+        return source.getAccessedColumns();
+    }
+
+    @Override
+    public ScanInformation<ExecRow> getScanInformation() {
+        return source.getScanInformation();
     }
 }
