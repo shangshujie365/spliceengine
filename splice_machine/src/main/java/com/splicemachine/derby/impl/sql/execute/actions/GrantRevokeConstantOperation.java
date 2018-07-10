@@ -56,6 +56,7 @@ public class GrantRevokeConstantOperation implements ConstantAction {
 	 * @exception StandardException		Thrown on failure
 	 */
 	public void executeConstantAction( Activation activation ) throws StandardException {
+        DDLConstantOperation.checkAuthorizationScheme(grant?SQLState.NO_GRANT_PERMISSIONS_WITH_RANGER:SQLState.NO_REVOKE_PERMISSIONS_WITH_RANGER);
         LanguageConnectionContext lcc = activation.getLanguageConnectionContext();
         TransactionController tc = lcc.getTransactionExecute();
 
@@ -77,12 +78,12 @@ public class GrantRevokeConstantOperation implements ConstantAction {
     private DDLMessage.DDLChange  createDDLChange(long txnId, PermissionsDescriptor permissionsDescriptor, boolean grant) throws StandardException {
         if (permissionsDescriptor instanceof SchemaPermsDescriptor) {
             SchemaPermsDescriptor schemaPermsDescriptor = (SchemaPermsDescriptor) permissionsDescriptor;
-            return ProtoUtil.createRevokeSchemaPrivilege(txnId, schemaPermsDescriptor);
+            return ProtoUtil.createRevokeSchemaPrivilege(txnId, schemaPermsDescriptor, grant);
         }
         else if (permissionsDescriptor instanceof TablePermsDescriptor) {
             TablePermsDescriptor tablePermsDescriptor = (TablePermsDescriptor) permissionsDescriptor;
 
-            return ProtoUtil.createRevokeTablePrivilege(txnId, tablePermsDescriptor);
+            return ProtoUtil.createRevokeTablePrivilege(txnId, tablePermsDescriptor, grant);
         }
         else if (permissionsDescriptor instanceof ColPermsDescriptor) {
 
@@ -96,12 +97,12 @@ public class GrantRevokeConstantOperation implements ConstantAction {
         }
         else if (permissionsDescriptor instanceof RoutinePermsDescriptor) {
             RoutinePermsDescriptor routinePermsDescriptor = (RoutinePermsDescriptor)permissionsDescriptor;
-            return ProtoUtil.createRevokeRoutinePrivilege(txnId, routinePermsDescriptor);
+            return ProtoUtil.createRevokeRoutinePrivilege(txnId, routinePermsDescriptor, grant);
         }
         else if (permissionsDescriptor instanceof PermDescriptor) {
             PermDescriptor permDescriptor = (PermDescriptor)permissionsDescriptor;
             boolean restrict = ((GenericPrivilegeInfo)privileges).isRestrict();
-            return ProtoUtil.createRevokeGenericPrivilege(txnId, permDescriptor, restrict);
+            return ProtoUtil.createRevokeGenericPrivilege(txnId, permDescriptor, restrict, grant);
         }
 
         throw new RuntimeException("Unsupported permission descriptor type");

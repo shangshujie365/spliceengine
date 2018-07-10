@@ -1003,6 +1003,10 @@ Guide.
                 <name>28503</name>
                 <text>Error during Kerberos client initialization, check configuration.</text>
             </msg>
+            <msg>
+                <name>28504</name>
+		<text>Error accessing Keytab</text>
+            </msg>
 
         </family>
 
@@ -9271,6 +9275,28 @@ Shutting down instance {0} on database directory {1} with class loader {2} </tex
 	       <text>HBase operation error for table '{0}' and operation '{1}'</text>
                <arg>tableName</arg>
                <arg>operation</arg>
+           </msg>
+           <msg>
+               <name>EXT37</name>
+               <text>Cannot grant permissions when Splice Machine is attached to Ranger.  Please use the Ranger UI.</text>
+           </msg>
+
+           <msg>
+               <name>EXT38</name>
+               <text>Cannot revoke permissions when Splice Machine is attached to Ranger.  Please use the Ranger UI.</text>
+           </msg>
+
+           <msg>
+               <name>EXT39</name>
+               <text>Access Denied for Sentry, user '{0}' does not have privileges to execute: {1}</text>
+               <arg>userName</arg>
+               <arg>execute</arg>
+           </msg>
+
+           <msg>
+               <name>EXT40</name>
+               <text>Role {0} already exists in Sentry.</text>
+               <arg>role</arg>
            </msg>
        </family>
     </section>

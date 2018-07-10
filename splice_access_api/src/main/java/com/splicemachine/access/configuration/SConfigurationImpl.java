@@ -64,6 +64,12 @@ public final class SConfigurationImpl implements SConfiguration {
     public int authenticationTokenMaxConnections;
     public int authenticationTokenPermissionCacheSize;
 
+    // Authorization Configuration
+    private final String authorizationScheme;
+    private final String rangerServiceName;
+    private final int sentryPollingInterval;
+
+
     // DDLConfiguration
     private final  long ddlDrainingInitialWait;
     private final  long ddlDrainingMaximumWait;
@@ -83,6 +89,9 @@ public final class SConfigurationImpl implements SConfiguration {
     private final  int backupParallelism;
     private final  long backupKeepAliveInterval;
     private final  long backupTimeout;
+    private final  long backupMaxBandwidthMB;
+    private final  boolean backupUseDistcp;
+    private final  int backupIOBufferSize;
 
     // OperationConfiguration
     private final  int sequenceBlockSize;
@@ -331,6 +340,18 @@ public final class SConfigurationImpl implements SConfiguration {
         return backupTimeout;
     }
     @Override
+    public long getBackupMaxBandwidthMB() {
+        return backupMaxBandwidthMB;
+    }
+    @Override
+    public boolean getBackupUseDistcp() {
+        return backupUseDistcp;
+    }
+    @Override
+    public int getBackupIOBufferSize() {
+        return backupIOBufferSize;
+    }
+    @Override
     public String getCompressionAlgorithm() {
         return compressionAlgorithm;
     }
@@ -495,6 +516,20 @@ public final class SConfigurationImpl implements SConfiguration {
     public int getOlapServerSubmitAttempts() {
         return olapServerSubmitAttempts;
     }
+    @Override
+    public String getAuthorizationScheme() {
+        return authorizationScheme;
+    }
+    @Override
+    public String getRangerServiceName() {
+        return rangerServiceName;
+    }
+    @Override
+    public int getSentryPollingInterval() {
+        return sentryPollingInterval;
+    }
+
+
     @Override
     public int getOlapServerMemory() {
         return olapServerMemory;
@@ -756,6 +791,9 @@ public final class SConfigurationImpl implements SConfiguration {
         authenticationTokenMaxConnections = builder.authenticationTokenMaxConnections;
         authenticationTokenPermissionCacheSize = builder.authenticationTokenPermissionCacheSize;
         authenticationTokenMaxLifetime = builder.authenticationTokenMaxLifetime;
+        authorizationScheme = builder.authorizationScheme;
+        rangerServiceName = builder.rangerServiceName;
+        sentryPollingInterval = builder.sentryPollingInterval;
         fallbackNullFraction = builder.fallbackNullFraction;
         optimizerExtraQualifierMultiplier = builder.optimizerExtraQualifierMultiplier;
         cardinalityPrecision = builder.cardinalityPrecision;
@@ -777,6 +815,9 @@ public final class SConfigurationImpl implements SConfiguration {
         backupParallelism = builder.backupParallelism;
         backupKeepAliveInterval = builder.backupKeepAliveInterval;
         backupTimeout = builder.backupTimeout;
+        backupMaxBandwidthMB = builder.backupMaxBandwidthMB;
+        backupUseDistcp = builder.backupUseDistcp;
+        backupIOBufferSize = builder.backupIOBufferSize;
         compressionAlgorithm = builder.compressionAlgorithm;
         namespace = builder.namespace;
         spliceRootPath = builder.spliceRootPath;

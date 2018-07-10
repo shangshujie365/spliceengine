@@ -101,6 +101,12 @@ public interface SConfiguration {
 
     long getBackupTimeout();
 
+    long getBackupMaxBandwidthMB();
+
+    boolean getBackupUseDistcp();
+
+    int getBackupIOBufferSize();
+
     String getCompressionAlgorithm();
 
     String getNamespace();
@@ -152,6 +158,12 @@ public interface SConfiguration {
     int getSparkResultStreamingBatchSize();
 
     double getBulkImportSampleFraction();
+
+    String getAuthorizationScheme();
+
+    String getRangerServiceName();
+
+    int getSentryPollingInterval();
 
     int getBulkImportTasksPerRegion();
 

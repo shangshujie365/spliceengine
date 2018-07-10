@@ -67,6 +67,11 @@ public class ConfigurationBuilder {
     public int authenticationTokenMaxConnections;
     public int authenticationTokenPermissionCacheSize;
 
+    // Authorization Configuration
+    public String authorizationScheme;
+    public String rangerServiceName;
+    public int sentryPollingInterval;
+
     // StatsConfiguration
     public double fallbackNullFraction;
     public double optimizerExtraQualifierMultiplier;
@@ -99,6 +104,9 @@ public class ConfigurationBuilder {
     public int backupParallelism;
     public long backupKeepAliveInterval;
     public long backupTimeout;
+    public long backupMaxBandwidthMB;
+    public boolean backupUseDistcp;
+    public int backupIOBufferSize;
 
     // SQLConfiguration
     public boolean debugDumpBindTree;

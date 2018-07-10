@@ -14,7 +14,7 @@
 
 package com.splicemachine.si.impl;
 
-import com.carrotsearch.hppc.LongOpenHashSet;
+import com.carrotsearch.hppc.LongHashSet;
 import com.splicemachine.si.api.txn.TaskId;
 import com.splicemachine.si.api.txn.Txn;
 import com.splicemachine.si.api.txn.TxnLifecycleManager;
@@ -109,8 +109,8 @@ public class ForwardingLifecycleManager implements TxnLifecycleManager{
         }
 
 		@Override
-		public boolean isRestoreNode() {
-			return lifecycleManager.isRestoreNode();
+		public boolean isRestoreMode() {
+			return lifecycleManager.isRestoreMode();
 		}
 
         @Override
@@ -131,7 +131,7 @@ public class ForwardingLifecycleManager implements TxnLifecycleManager{
 		}
 
 	@Override
-	public void rollbackSubtransactions(long txnId, LongOpenHashSet rolledback) throws IOException {
+	public void rollbackSubtransactions(long txnId, LongHashSet rolledback) throws IOException {
 		lifecycleManager.rollbackSubtransactions(txnId, rolledback);
 	}
 

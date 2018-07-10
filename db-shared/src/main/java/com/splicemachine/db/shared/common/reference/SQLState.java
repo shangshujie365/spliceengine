@@ -1553,6 +1553,7 @@ public interface SQLState {
 	String AUTH_CANNOT_SET_READ_WRITE                                  = "25505";
 	String AUTH_INVALID_USER_NAME                                      = "28502";
 	String AUTH_ERROR_KERBEROS_CLIENT                                  = "28503";
+	String AUTH_ERROR_KEYTAB_LOCALIZATION                              = "28504";
 
 	/*
 	** Dependency manager
@@ -2008,6 +2009,10 @@ public interface SQLState {
 	String ACCESSING_S3_EXCEPTION                                   = "EXT34";
 	String EXISTING_PIN_VIOLATION									= "EXT35";
 	String ROW_FORMAT_NOT_ALLOWED_WITH_AVRO						   	= "EXT36";
+	String NO_GRANT_PERMISSIONS_WITH_RANGER                                = "EXT37";
+	String NO_REVOKE_PERMISSIONS_WITH_RANGER                                = "EXT38";
+	String ACCESS_DENIED_SENTRY                                = "EXT39";
+	String ROLE_ALREADY_EXISTS_SENTRY                                = "EXT40";
 
 	String SNAPSHOT_EXISTS											= "SNA01";
 	String SNAPSHOT_NOT_EXISTS										= "SNA02";
@@ -2029,5 +2034,6 @@ public interface SQLState {
 	String TOKEN_EXPIRED											= "ST002";
 
 	String HBASE_OPERATION_ERROR									= "HO001";
+
 }
 
