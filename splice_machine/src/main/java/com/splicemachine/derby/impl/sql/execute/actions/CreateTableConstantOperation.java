@@ -17,6 +17,7 @@ package com.splicemachine.derby.impl.sql.execute.actions;
 import com.splicemachine.EngineDriver;
 import com.splicemachine.access.api.DistributedFileSystem;
 import com.splicemachine.access.api.FileInfo;
+import com.splicemachine.access.api.SConfiguration;
 import com.splicemachine.db.catalog.UUID;
 import com.splicemachine.db.iapi.error.StandardException;
 import com.splicemachine.db.iapi.reference.Property;
@@ -300,7 +301,13 @@ public class CreateTableConstantOperation extends DDLConstantOperation {
             PropertyUtil.getCachedDatabaseProperty(lcc.getTransactionCompile(),
             Property.CREATE_TABLES_AS_VERSION_2);
         }
-        boolean createAsVersion2 = createAsVersion2String != null && Boolean.valueOf(createAsVersion2String);
+        boolean createAsVersion2;
+        if (createAsVersion2String != null)
+            createAsVersion2 = Boolean.valueOf(createAsVersion2String);
+        else {
+            SConfiguration configuration=EngineDriver.driver().getConfiguration();
+            createAsVersion2 = configuration.getDdlUseV2Serializer();
+        }
 
         dd.addDescriptor(td, sd, DataDictionary.SYSTABLES_CATALOG_NUM, false, tc, createAsVersion2);
 

@@ -75,6 +75,7 @@ public final class SConfigurationImpl implements SConfiguration {
     private final  long ddlDrainingMaximumWait;
     private final  long ddlRefreshInterval;
     private final  long maxDdlWait;
+    private final  boolean ddlUseV2Serializer;
 
     // HConfiguration
     private final  int regionServerHandlerCount;
@@ -308,6 +309,10 @@ public final class SConfigurationImpl implements SConfiguration {
     @Override
     public long getMaxDdlWait() {
         return maxDdlWait;
+    }
+    @Override
+    public boolean getDdlUseV2Serializer() {
+        return ddlUseV2Serializer;
     }
 
     // HConfiguration
@@ -894,6 +899,7 @@ public final class SConfigurationImpl implements SConfiguration {
         regionToLoadPerTask = builder.regionToLoadPerTask;
         ignoreMissingTxns = builder.ignoreMissingTxns;
         maxCheckTableErrors = builder.maxCheckTableErrors;
+        ddlUseV2Serializer = builder.ddlUseV2Serializer;
     }
 
     private static final Logger LOG = Logger.getLogger("splice.config");

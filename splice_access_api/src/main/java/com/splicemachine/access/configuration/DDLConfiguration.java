@@ -51,12 +51,16 @@ public class DDLConfiguration implements ConfigurationDefault {
     public static final String DDL_DRAINING_MAXIMUM_WAIT = "splice.ddl.drainingWait.maximum";
     private static final long DEFAULT_DDL_DRAINING_MAXIMUM_WAIT = 100000;
 
+    public static final String DDL_CT_WITH_V2_SERIALIZER = "derby.database.createTablesWithVersion2Serializer";
+    private static final boolean DEFAULT_DDL_CT_WITH_V2_SERIALIZER = false;
+
     @Override
     public void setDefaults(ConfigurationBuilder builder, ConfigurationSource configurationSource) {
         builder.maxDdlWait = configurationSource.getLong(MAX_DDL_WAIT, DEFAULT_MAX_DDL_WAIT);
         builder.ddlRefreshInterval = configurationSource.getLong(DDL_REFRESH_INTERVAL, DEFAULT_DDL_REFRESH_INTERVAL);
         builder.ddlDrainingInitialWait = configurationSource.getLong(DDL_DRAINING_INITIAL_WAIT, DEFAULT_DDL_DRAINING_INITIAL_WAIT);
         builder.ddlDrainingMaximumWait = configurationSource.getLong(DDL_DRAINING_MAXIMUM_WAIT, DEFAULT_DDL_DRAINING_MAXIMUM_WAIT);
+        builder.ddlUseV2Serializer = configurationSource.getBoolean(DDL_CT_WITH_V2_SERIALIZER, DEFAULT_DDL_CT_WITH_V2_SERIALIZER);
     }
 
 }

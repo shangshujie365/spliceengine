@@ -47,6 +47,7 @@ public class ConfigurationBuilder {
     public long ddlDrainingMaximumWait;
     public long ddlRefreshInterval;
     public long maxDdlWait;
+    public boolean ddlUseV2Serializer;
 
     // AuthenticationConfiguration
     public boolean authenticationNativeCreateCredentialsDatabase;

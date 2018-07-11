@@ -86,6 +86,8 @@ public interface SConfiguration {
 
     long getMaxDdlWait();
 
+    boolean getDdlUseV2Serializer();
+
     // HConfiguration
     int getRegionServerHandlerCount();
 
