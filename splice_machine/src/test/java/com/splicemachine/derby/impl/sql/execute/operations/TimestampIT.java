@@ -38,6 +38,7 @@ import static org.junit.Assert.*;
  * Test different operations on extended-range timestamps.
  *
  */
+
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 @RunWith(Parameterized.class)
 public class TimestampIT extends SpliceUnitTest {
@@ -73,11 +74,12 @@ public class TimestampIT extends SpliceUnitTest {
     }
 
     @BeforeClass
+    @Ignore
     public static void createDataSet() throws Exception {
         methodWatcher.setAutoCommit(false);
         createSharedTables(spliceClassWatcher.getOrCreateConnection());
     }
-
+    @Ignore
     public static void createSharedTables(Connection conn) throws Exception {
         BADDIR = SpliceUnitTest.createBadLogDirectory(SCHEMA);
         assertNotNull(BADDIR);
@@ -220,7 +222,7 @@ public class TimestampIT extends SpliceUnitTest {
         }
 
     }
-
+    @Ignore
     @Test
     public void testMultiProbeTableScanWithProbeVariables() throws Exception {
         PreparedStatement ps = methodWatcher.prepareStatement(format("select col2 from t1 --SPLICE-PROPERTIES useSpark = %s  \n" +
@@ -244,7 +246,7 @@ public class TimestampIT extends SpliceUnitTest {
         }
     }
 
-
+    @Ignore
     @Test
     public void testIntersect() throws Exception {
         ResultSet rs = methodWatcher.executeQuery(format("select count(*), max(col1), min(col1) " +
@@ -264,6 +266,7 @@ public class TimestampIT extends SpliceUnitTest {
         }
 
     }
+    @Ignore
     @Test
     public void testUnion() throws Exception {
         ResultSet rs = methodWatcher.executeQuery(format("select count(*), max(col1), min(col1) " +
@@ -283,7 +286,7 @@ public class TimestampIT extends SpliceUnitTest {
         }
     }
 
-
+    @Ignore
     @Test
     public void testExcept() throws Exception {
 
@@ -306,7 +309,7 @@ public class TimestampIT extends SpliceUnitTest {
         }
     }
 
-
+    @Ignore
     @Test
     public void testExceptWithOrderBy() throws Exception {
         ResultSet rs = methodWatcher.executeQuery(
@@ -326,6 +329,7 @@ public class TimestampIT extends SpliceUnitTest {
 
 
     /* positive test, top N is applied on the union all result */
+    @Ignore
     @Test
     public void testTopN1() throws Exception {
         String sqlText = "select top 2 * from t1 union all select * from t2 order by 1,2";
@@ -345,6 +349,7 @@ public class TimestampIT extends SpliceUnitTest {
     }
 
     /* positive test, top N is applied on the union all result */
+    @Ignore
     @Test
     public void testTopN2() throws Exception {
         String sqlText = format("select count(*) from " +
@@ -359,7 +364,7 @@ public class TimestampIT extends SpliceUnitTest {
         assertEquals("\n" + sqlText + "\n", expected, TestUtils.FormattedResult.ResultFactory.toStringUnsorted(rs));
         rs.close();
     }
-
+    @Ignore
     @Test
     public void testGroupBy6Digits() throws Exception {
         String sqlText = "select count(*), col1 from t3 --SPLICE-PROPERTIES useSpark = %s  \n" +
@@ -402,7 +407,7 @@ public class TimestampIT extends SpliceUnitTest {
 
         rs.close();
     }
-
+    @Ignore
     @Test
     public void testTimestampAdd() throws Exception {
         String sqlText = format("select TIMESTAMPADD(SQL_TSI_SECOND, -1, col1) from t3 --SPLICE-PROPERTIES useSpark = %s", useSpark);
@@ -460,7 +465,7 @@ public class TimestampIT extends SpliceUnitTest {
         rs.close();
 
     }
-
+    @Ignore
     @Test
     public void testTimestampDiff() throws Exception {
         String sqlText = format("select TIMESTAMPDIFF(SQL_TSI_FRAC_SECOND, col1, col2) from t4 --SPLICE-PROPERTIES useSpark = %s", useSpark);
@@ -482,7 +487,7 @@ public class TimestampIT extends SpliceUnitTest {
         rs.close();
 
     }
-
+    @Ignore
     @Test
     public void testJoins() throws Exception {
         String sqlText;
@@ -523,7 +528,7 @@ public class TimestampIT extends SpliceUnitTest {
             rs.close();
         }
     }
-
+    @Ignore
     @Test
     public void updateTest() throws Exception {
         int updated = methodWatcher.executeUpdate(format("update t1 set col1 = {ts '1999-01-01 00:00:00'}"));
@@ -578,7 +583,7 @@ public class TimestampIT extends SpliceUnitTest {
 
         rs.close();
     }
-
+    @Ignore
     @AfterClass
     public static void resetConvertOutOfRangeTimeStamps() throws Exception {
         Connection conn = spliceClassWatcher.getOrCreateConnection();
