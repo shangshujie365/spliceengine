@@ -83,6 +83,9 @@ public class DataDictionaryUtils {
                 impl.close();
         }
 
+        if (columnOrdering == null)
+            columnOrdering = new int[0];
+
         return columnOrdering;
     }
 
